@@ -15,7 +15,7 @@ func main() {
 	// naads client
 	client := &naads.Client{
 		Feeds: []*naads.Feed{
-			&naads.Feed{
+			{
 				Name:            "NAADS-1",
 				Host:            "streaming1.naad-adna.pelmorex.com",
 				SendHeartbeat:   true,
@@ -25,7 +25,7 @@ func main() {
 				Logging:         true,
 				LogHeartbeat:    true,
 			},
-			&naads.Feed{
+			{
 				Name:            "NAADS-2",
 				Host:            "streaming2.naad-adna.pelmorex.com",
 				SendHeartbeat:   true,
