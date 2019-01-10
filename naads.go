@@ -35,67 +35,95 @@ import (
 
 // Client represents the configuration for the NAAD client.
 type Client struct {
-	Feeds      []*Feed         // Array of NAADS Feeds to listen to
+	Feeds      []*Feed         // Array of NAADS Feeds to listen to (feeds defined first have greater priority when multiple feeds are available)
 	Logging    bool            // Indicator to log control status to stdout
 	ch         chan *cap.Alert // Alert output channel
 	activeFeed int             // Index of active feed
 }
 
-// Start will establish connections with all of the provided feeds. It will
-// designate one of the feeds as "hot" and begin forwarding messages from the
-// feed's output to the master output. In the event that a feed goes down, the
-// built in monitor will switch to another feed.
+// Start will start the highly available NAADS client. It will connect to all
+// the feeds listed, locking to one of the feeds. When locked, the feed's
+// messages will be passed to the output channel. If the locked feed goes down,
+// the client will automatically lock onto another available feed. The
+// individual feeds are responsible for providing their connection status, and
+// for performing reconnect procedures.
 func (c *Client) Start() chan *cap.Alert {
 	// log.Printf to stdout
 	log.SetOutput(os.Stdout)
+	// initially no feeds are locked
+	c.activeFeed = -1
 	// master output feed
 	c.ch = make(chan *cap.Alert, 16)
 
-	// spawn a goroutine with each feed; start each feed
+	// start each feed in a goroutine (feed has it's own subclient)
 	for index, feed := range c.Feeds {
 		go func(i int, f *Feed) {
 			// range over single feed's output channel
 			for alert := range f.start() {
-				// publish alert on main channel only if current feed is the hot
-				// feed
+				// forward message to output channel only if the feed is locked
+				// as the active feed
 				if i == c.activeFeed {
 					c.ch <- alert
 				}
 			}
 		}(index, feed)
 	}
+	// begin monitoring the feeds
+	c.monitor()
+	// return the Alert output channel
+	return c.ch
+}
 
-	time.Sleep(2 * time.Second)
-	if c.Logging {
-		log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", c.Feeds[c.activeFeed].Name)
-	}
-
-	// monitor the feeds
+// monitor is responsible for continuously monitoring the health of the feeds.
+// If the current locked feed is down, or if there are no available feeds, it
+// will continue searching for feeds until a feed is available (and locked).
+func (c *Client) monitor() {
 	go func() {
 		for {
-			// get current and adjacent feed
-			currentFeed := c.Feeds[c.activeFeed]
-			adjIndex := (c.activeFeed + 1) % len(c.Feeds)
-			adjFeed := c.Feeds[adjIndex]
+			// initial delay + check health every 2 seconds
+			time.Sleep(2 * time.Second)
 
-			// switch to adjacent feed if current is down
-			if !currentFeed.isConnected {
-				if c.Logging {
-					log.Printf("CONTROL [ERROR] %s is down; switching main feed to %s\n", currentFeed.Name, adjFeed.Name)
-				}
-				// change feed and index
-				c.activeFeed = adjIndex
-				currentFeed = adjFeed
-				// confirm that switch was successful
-				if currentFeed.isConnected && c.Logging {
+			if c.activeFeed == -1 {
+				// currently not locked to feed
+				feedIndex := c.findAvailableFeed()
+				if feedIndex == -1 {
+					log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
+				} else {
+					// lock the new feed
+					c.activeFeed = feedIndex
+					currentFeed := c.Feeds[c.activeFeed]
 					log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
 				}
+			} else {
+				// currently locked to feed, check health and switch if
+				// necessary
+				currentFeed := c.Feeds[c.activeFeed]
+				if !currentFeed.isConnected {
+					// current feed is down, find another feed
+					feedIndex := c.findAvailableFeed()
+					if feedIndex == -1 {
+						// unlock the active feed
+						c.activeFeed = -1
+						log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
+					} else {
+						// lock the new feed
+						c.activeFeed = feedIndex
+						currentFeed := c.Feeds[c.activeFeed]
+						log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
+					}
+				}
 			}
-			// check again in 2 seconds
-			time.Sleep(2 * time.Second)
 		}
 	}()
+}
 
-	// return the master output channel
-	return c.ch
+// findAvailableFeed returns the index of the first feed in Feeds that is
+// connected. If there are no feeds that are connected, -1 is returned.
+func (c *Client) findAvailableFeed() int {
+	for index, feed := range c.Feeds {
+		if feed.isConnected {
+			return index
+		}
+	}
+	return -1
 }

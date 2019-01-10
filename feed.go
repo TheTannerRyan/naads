@@ -41,14 +41,14 @@ var (
 )
 
 // Feed is a TCP client for the NAADS system. It will be used for receiving the
-// TCP data stream and convert the raw XML to CAP Alert structs.
+// TCP data stream and for converting the raw XML to CAP Alert structs.
 type Feed struct {
 	Name            string          // Name of NAADS server (display purposes)
 	Host            string          // Hostname of NAADS server
 	SendHeartbeat   bool            // Send NAADS heartbeats to output channel
 	ConnectTimeout  time.Duration   // Timeout on connection/reconnection
 	LivenessTimeout time.Duration   // Duration between messages before feed is considered dead
-	ReconnectDelay  time.Duration   // Duration before attempting reconnection
+	ReconnectDelay  time.Duration   // Delay before attempting reconnection
 	Logging         bool            // Indicator to log feed status to stdout
 	LogHeartbeat    bool            // If logging is enabled, indicator to log heartbeats to stdout
 	ch              chan *cap.Alert // Alert output channel
@@ -69,8 +69,9 @@ func (feed *Feed) start() chan *cap.Alert {
 }
 
 // connect is the internal function that spawns a goroutine, responsible for
-// connecting to the TCP stream. The function will also call itself on a
-// disconnection to reconnect.
+// connecting to the TCP stream. It listens to the NAAD Host, converting the raw
+// XML data into valid Alert structs. The function will also call itself to
+// initialize reconnects.
 func (feed *Feed) connect() {
 	// connect() is non-blocking
 	go func(f *Feed) {
@@ -80,7 +81,7 @@ func (feed *Feed) connect() {
 		conn, err := dial.Dial("tcp", f.Host+":8080")
 		if err != nil {
 			// Error was encountered when performing connection attempt. Update
-			// status, and wait ReconnectDelay before re-attempting connection.
+			// status and wait ReconnectDelay before re-attempting connection.
 			f.isConnected = false
 			if f.Logging {
 				log.Printf("%s [ERROR] Cannot establish connection with %s; waiting %.f seconds and retrying\n", f.Name, f.Host, f.ReconnectDelay.Seconds())
@@ -95,6 +96,7 @@ func (feed *Feed) connect() {
 		temp := make([]byte, 6*1024*1024)
 		data := make([]byte, 0)
 
+		// if block is reached, feed was successfully connected
 		f.isConnected = true
 		if f.Logging {
 			log.Printf("%s [STATUS] Established connection with %s\n", f.Name, f.Host)
@@ -104,6 +106,7 @@ func (feed *Feed) connect() {
 			// Connection is considered dead if we don't receive messages after
 			// the feed defined LivenessTimeout.
 			conn.SetDeadline(time.Now().Add(f.LivenessTimeout))
+
 			// stream data to temp buffer
 			n, err := conn.Read(temp)
 			if err != nil {
@@ -120,7 +123,8 @@ func (feed *Feed) connect() {
 				return
 			}
 
-			// if start signature encountered, clear data buffer for new data
+			// normal operation: if start signature encountered, clear data
+			// buffer for new data
 			startIndex := bytes.Index(temp, startSignature)
 			if startIndex != -1 {
 				if f.Logging {
@@ -138,11 +142,12 @@ func (feed *Feed) connect() {
 				data = data[:0]
 			}
 
-			// append last chunk of temp buffer to data buffer
+			// normal operation: append last chunk of temp buffer to data buffer
 			lastChunk := temp[:n]
 			data = append(data, lastChunk...)
 
-			// if end signature encountered, trigger callback
+			// normal operation: if end signature encountered, the data is ready
+			// to be parsed
 			endIndex := bytes.Index(lastChunk, endSignature)
 			if endIndex != -1 {
 				// parse the message using CAP package
@@ -151,7 +156,7 @@ func (feed *Feed) connect() {
 					//> TODO: incorporate manually fetching of malformed +
 					// missing messages
 					if f.Logging {
-						log.Printf("%s [ERROR] Malformed message\n", f.Name)
+						log.Printf("%s [ERROR] MALFORMED MESSAGE\n", f.Name)
 					}
 				} else {
 					// update message time; broadcast message on channel

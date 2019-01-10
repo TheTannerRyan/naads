@@ -12,7 +12,8 @@ import (
 )
 
 func main() {
-	// naads client
+	// Create a new naads client. Upon initial connection, if both feeds are
+	// successfully connected, the client will lock onto the first feed.
 	client := &naads.Client{
 		Feeds: []*naads.Feed{
 			{
