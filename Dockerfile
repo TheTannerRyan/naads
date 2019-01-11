@@ -25,6 +25,7 @@ COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /go/bin/exec /go/bin/exec
 
+ENV TZ America/Toronto
 USER gopher
 WORKDIR /go/bin
 

@@ -15,6 +15,9 @@ Alert Aggregation & Dissemination System (NAADS).
 This is a work in progress. **Please do not use it yet as more testing is still
 required**. Documentation will be provided soon.
 
+The naads client currently undergoing tests. The test instance is publicly
+accessible and can be accessed [here](http://178.128.225.33.xip.io).
+
 ## License
 Copyright (c) 2019 Tanner Ryan. All rights reserved. Use of this source code is
 governed by a BSD-style license that can be found in the LICENSE file.
