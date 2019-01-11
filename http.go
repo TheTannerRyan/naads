@@ -19,7 +19,6 @@ func (c *Client) HTTP(port int) {
 		// parse status page
 		page, err := template.ParseFiles("status.html")
 		if err != nil {
-			fmt.Print(err)
 			log.Printf("CONTROLLER [ERROR] Unable to read status.html")
 		}
 
