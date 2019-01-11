@@ -1,27 +1,6 @@
-// BSD 2-Clause License
-//
 // Copyright (c) 2019 Tanner Ryan. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package naads
 
@@ -40,6 +19,7 @@ func (c *Client) HTTP(port int) {
 		// parse status page
 		page, err := template.ParseFiles("status.html")
 		if err != nil {
+			fmt.Print(err)
 			log.Printf("CONTROLLER [ERROR] Unable to read status.html")
 		}
 
@@ -69,13 +49,15 @@ type status struct {
 
 // feedstatus is for rendering the HTTP status page
 type feedstatus struct {
-	Status         string
-	StatusStyle    string
-	Name           string
-	Host           string
-	LastMsg        string
-	LastMsgTime    string
-	Disconnections string
+	Status          string
+	StatusStyle     string
+	Name            string
+	LastMsg         string
+	LastMsgTime     string
+	CountDisconnect string
+	CountHeartbeat  string
+	CountAlert      string
+	CountUnknown    string
 }
 
 // feedconfig is for rendering the HTTP status page
@@ -120,14 +102,16 @@ func (c *Client) generateStatus() *status {
 			status.StatusStyle = "status-down"
 		}
 		status.Name = f.Name
-		status.Host = f.Host
 		status.LastMsg = f.lastMsg
 		if diff := int(time.Now().Sub(f.lastMsgTime).Seconds()); diff == 9223372036 {
 			status.LastMsgTime = "N/A"
 		} else {
 			status.LastMsgTime = "(" + strconv.Itoa(diff) + " seconds ago)"
 		}
-		status.Disconnections = strconv.Itoa(f.disconnections)
+		status.CountDisconnect = strconv.Itoa(f.countDisconnect)
+		status.CountHeartbeat = strconv.Itoa(f.countHeartbeat)
+		status.CountAlert = strconv.Itoa(f.countAlert)
+		status.CountUnknown = strconv.Itoa(f.countUnknown)
 		feedStatus = append(feedStatus, status)
 
 		// feed config

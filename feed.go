@@ -1,27 +1,6 @@
-// BSD 2-Clause License
-//
 // Copyright (c) 2019 Tanner Ryan. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package naads
 
@@ -55,7 +34,10 @@ type Feed struct {
 	isConnected     bool            // Indicator if connection is currently established
 	lastMsgTime     time.Time       // Last time a message (alert or heartbeat) was received (not currently used)
 	lastMsg         string          // Type and ID of last message that was received
-	disconnections  int             // Number of times the feed was disconnected
+	countDisconnect int             // Count of feed disconnections
+	countHeartbeat  int             // Count of heartbeat messages
+	countAlert      int             // Count of alert messages
+	countUnknown    int             // Count of unknown messages
 }
 
 // start will establish a connection with the NAADS server (via internal
@@ -114,7 +96,7 @@ func (feed *Feed) connect() {
 			if err != nil {
 				// connection was dropped
 				f.isConnected = false
-				f.disconnections++
+				f.countDisconnect++
 				// Ensure the connection actually closes (prevent resource leak
 				// with conn.SetDeadline).
 				if err2 := conn.Close(); err2 != nil {
@@ -131,22 +113,31 @@ func (feed *Feed) connect() {
 			// buffer for new data
 			startIndex := bytes.Index(temp, startSignature)
 			if startIndex != -1 {
-				if f.Logging {
-					if startIndex == 38 {
-						if f.LogHeartbeat {
-							f.lastMsg = "HEARTBEAT "
-							log.Printf("%s [STATUS] INCOMING HEARTBEAT\n", f.Name)
-						}
-					} else if startIndex == 55 {
-						f.lastMsg = "ALERT "
+				// clear data buffer
+				data = data[:0]
+
+				if startIndex == 38 {
+					// new heartbeat message
+					f.lastMsg = "HEARTBEAT "
+					f.countHeartbeat++
+					if f.Logging && f.LogHeartbeat {
+						log.Printf("%s [STATUS] INCOMING HEARTBEAT\n", f.Name)
+					}
+				} else if startIndex == 55 {
+					// new alert message
+					f.lastMsg = "ALERT "
+					f.countAlert++
+					if f.Logging {
 						log.Printf("%s [STATUS] INCOMING ALERT\n", f.Name)
-					} else {
-						f.lastMsg = "UNKNOWN "
+					}
+				} else {
+					// new unknown message
+					f.lastMsg = "UNKNOWN "
+					f.countUnknown++
+					if f.Logging {
 						log.Printf("%s [STATUS] INCOMING UNKNOWN\n", f.Name)
 					}
 				}
-				// clear data buffer
-				data = data[:0]
 			}
 
 			// normal operation: append last chunk of temp buffer to data buffer
