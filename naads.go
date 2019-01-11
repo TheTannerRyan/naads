@@ -33,12 +33,15 @@ import (
 	"github.com/thetannerryan/cap"
 )
 
+const version = "v0.0.1" // NAADS client version
+
 // Client represents the configuration for the NAAD client.
 type Client struct {
 	Feeds      []*Feed         // Array of NAADS Feeds to listen to (feeds defined first have greater priority when multiple feeds are available)
 	Logging    bool            // Indicator to log control status to stdout
 	ch         chan *cap.Alert // Alert output channel
 	activeFeed int             // Index of active feed
+	startTime  time.Time       // Start time of client
 }
 
 // Start will start the highly available NAADS client. It will connect to all
@@ -54,6 +57,8 @@ func (c *Client) Start() chan *cap.Alert {
 	c.activeFeed = -1
 	// master output feed
 	c.ch = make(chan *cap.Alert, 16)
+	// update start time
+	c.startTime = time.Now()
 
 	// start each feed in a goroutine (feed has it's own subclient)
 	for index, feed := range c.Feeds {
@@ -80,8 +85,8 @@ func (c *Client) Start() chan *cap.Alert {
 func (c *Client) monitor() {
 	go func() {
 		for {
-			// initial delay + check health every 2 seconds
-			time.Sleep(2 * time.Second)
+			// initial delay + check health every second
+			time.Sleep(1 * time.Second)
 
 			if c.activeFeed == -1 {
 				// currently not locked to feed
@@ -100,10 +105,10 @@ func (c *Client) monitor() {
 				currentFeed := c.Feeds[c.activeFeed]
 				if !currentFeed.isConnected {
 					// current feed is down, find another feed
+					c.activeFeed = -1
 					feedIndex := c.findAvailableFeed()
 					if feedIndex == -1 {
 						// unlock the active feed
-						c.activeFeed = -1
 						log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
 					} else {
 						// lock the new feed

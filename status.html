@@ -1,0 +1,143 @@
+{{define "status"}}
+<!-- Copyright (c) 2019 Tanner Ryan. All rights reserved. Use of this source
+code is governed by a BSD-style license that can be found at
+https://github.com/TheTannerRyan/naads/blob/master/LICENSE. -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>NAADS Client</title>
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,700" rel="stylesheet">
+    <style type="text/css">
+        body {
+            font-family: Karla, sans-serif;
+            background-color: #2a2a2b;
+            color: #ddd;
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        a:link,
+        a:visited,
+        a:hover,
+        a:active {
+            color: rgb(205, 220, 57);
+        }
+
+        strong {
+            font-weight: 900;
+        }
+
+        #title {
+            font-size: 3em;
+            text-transform: uppercase;
+            margin-top: 0.4em;
+            margin-bottom: 0.4em;
+        }
+
+        #heart {
+            vertical-align: middle;
+            width: 0.75em;
+            height: 0.75em;
+            padding-left: 0.12em;
+            padding-bottom: 0.12em;
+        }
+
+        table,
+        th,
+        td {
+            border: 2px solid #ddd;
+            border-collapse: collapse;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        th,
+        td {
+            padding: 5px;
+        }
+
+        .status-locked {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+        .status-active {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        .status-down {
+            background-color: #c0392b;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <p id="title">NAADS Client</p>
+    <hr>
+
+    <h2>System</h2>
+    <ul>
+        <li><strong>Version</strong>: {{.Version}}</li>
+        <li><strong>Uptime</strong>: {{.Uptime}}</li>
+        <li><strong>Time</strong>: {{.Time}}</li>
+        <li><strong>UTC Time</strong>: {{.UTCTime}}</li>
+    </ul>
+
+    <h2>Status</h2>
+    <table class="full-width">
+        <tr>
+            <th>Status</th>
+            <th>Name</th>
+            <th>Host</th>
+            <th>Last Message</th>
+            <th>Disconnections</th>
+        </tr>
+        {{range .FeedStatus}}
+        <tr>
+            <td class="{{.StatusStyle}}">{{.Status}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Host}}</td>
+            <td>{{.LastMsg}} {{.LastMsgTime}}</td>
+            <td>{{.Disconnections}}</td>
+        </tr>
+        {{end}}
+    </table>
+
+    <h2>Feed Configuration</h2>
+    <table class="full-width">
+        <tr>
+            <th>Name</th>
+            <th>Host</th>
+            <th>Send Heartbeat</th>
+            <th>Connect Timeout</th>
+            <th>Liveness Timeout</th>
+            <th>Reconnect Delay</th>
+            <th>Logging</th>
+            <th>Log Heartbeat</th>
+        </tr>
+        {{range .FeedConfig}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Host}}</td>
+            <td>{{.SendHeartbeat}}</td>
+            <td>{{.ConnectTimeout}}</td>
+            <td>{{.LivenessTimeout}}</td>
+            <td>{{.ReconnectDelay}}</td>
+            <td>{{.Logging}}</td>
+            <td>{{.LogHeartbeat}}</td>
+        </tr>
+        {{end}}
+    </table>
+    <p><strong>Copyright (c) 2019 Tanner Ryan. All rights reserved. Use of this
+            source code is governed by a BSD-style license that can be found <a href="https://github.com/TheTannerRyan/naads/blob/master/LICENSE"
+                target="_blank">here</a>.</strong></p>
+</body>
+
+</html>
+{{end}}

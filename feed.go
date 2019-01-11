@@ -53,7 +53,9 @@ type Feed struct {
 	LogHeartbeat    bool            // If logging is enabled, indicator to log heartbeats to stdout
 	ch              chan *cap.Alert // Alert output channel
 	isConnected     bool            // Indicator if connection is currently established
-	lastMessage     time.Time       // Last time a message (alert or heartbeat) was received (not currently used)
+	lastMsgTime     time.Time       // Last time a message (alert or heartbeat) was received (not currently used)
+	lastMsg         string          // Type and ID of last message that was received
+	disconnections  int             // Number of times the feed was disconnected
 }
 
 // start will establish a connection with the NAADS server (via internal
@@ -112,6 +114,7 @@ func (feed *Feed) connect() {
 			if err != nil {
 				// connection was dropped
 				f.isConnected = false
+				f.disconnections++
 				// Ensure the connection actually closes (prevent resource leak
 				// with conn.SetDeadline).
 				if err2 := conn.Close(); err2 != nil {
@@ -119,6 +122,7 @@ func (feed *Feed) connect() {
 				if f.Logging {
 					log.Printf("%s [ERROR] Lost connection with %s; attempting reconnection\n", f.Name, f.Host)
 				}
+				time.Sleep(f.ConnectTimeout)
 				f.connect()
 				return
 			}
@@ -130,11 +134,14 @@ func (feed *Feed) connect() {
 				if f.Logging {
 					if startIndex == 38 {
 						if f.LogHeartbeat {
+							f.lastMsg = "HEARTBEAT "
 							log.Printf("%s [STATUS] INCOMING HEARTBEAT\n", f.Name)
 						}
 					} else if startIndex == 55 {
+						f.lastMsg = "ALERT "
 						log.Printf("%s [STATUS] INCOMING ALERT\n", f.Name)
 					} else {
+						f.lastMsg = "UNKNOWN "
 						log.Printf("%s [STATUS] INCOMING UNKNOWN\n", f.Name)
 					}
 				}
@@ -160,7 +167,8 @@ func (feed *Feed) connect() {
 					}
 				} else {
 					// update message time; broadcast message on channel
-					f.lastMessage = time.Now()
+					f.lastMsg += alert.Identifier
+					f.lastMsgTime = time.Now()
 					if f.SendHeartbeat || (!f.SendHeartbeat && alert.Sender != "NAADS-Heartbeat") {
 						f.ch <- alert
 					}

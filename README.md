@@ -10,6 +10,8 @@ license](https://img.shields.io/github/license/thetannerryan/naads.svg)](https:/
 Package naads is a highly available client written in Go for Pelmorex's National
 Alert Aggregation & Dissemination System (NAADS).
 
+![screenshot](image.png)
+
 This is a work in progress. **Please do not use it yet as more testing is still
 required**. Documentation will be provided soon.
 

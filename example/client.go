@@ -20,7 +20,7 @@ func main() {
 				Name:            "NAADS-1",
 				Host:            "streaming1.naad-adna.pelmorex.com",
 				SendHeartbeat:   true,
-				ConnectTimeout:  1005 * time.Millisecond,
+				ConnectTimeout:  1 * time.Second,
 				LivenessTimeout: 65 * time.Second,
 				ReconnectDelay:  21 * time.Second,
 				Logging:         true,
@@ -30,7 +30,7 @@ func main() {
 				Name:            "NAADS-2",
 				Host:            "streaming2.naad-adna.pelmorex.com",
 				SendHeartbeat:   true,
-				ConnectTimeout:  1005 * time.Millisecond,
+				ConnectTimeout:  1 * time.Second,
 				LivenessTimeout: 65 * time.Second,
 				ReconnectDelay:  21 * time.Second,
 				Logging:         true,
@@ -39,6 +39,9 @@ func main() {
 		},
 		Logging: true,
 	}
+
+	// start HTTP server on port 6060
+	client.HTTP(6060)
 
 	// receive the alerts (highly available)
 	for alert := range client.Start() {
