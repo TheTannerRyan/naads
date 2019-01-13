@@ -28,8 +28,8 @@ type Feed struct {
 	ConnectTimeout  time.Duration   // Timeout on connection/reconnection
 	LivenessTimeout time.Duration   // Duration between messages before feed is considered dead
 	ReconnectDelay  time.Duration   // Delay before attempting reconnection
-	Logging         bool            // Indicator to log feed status to stdout
-	LogHeartbeat    bool            // If logging is enabled, indicator to log heartbeats to stdout
+	LogStatus       bool            // Indicator to log feed status (incoming messages + disconnections) to stdout
+	LogHeartbeat    bool            // If LogStatus is enabled, indicator to log heartbeats to stdout
 	ch              chan *cap.Alert // Alert output channel
 	isConnected     bool            // Indicator if connection is currently established
 	lastMsgTime     time.Time       // Last time a message (alert or heartbeat) was received (not currently used)
@@ -68,7 +68,7 @@ func (feed *Feed) connect() {
 			// Error was encountered when performing connection attempt. Update
 			// status and wait ReconnectDelay before re-attempting connection.
 			f.isConnected = false
-			if f.Logging {
+			if f.LogStatus {
 				log.Printf("%s [ERROR] Cannot establish connection with %s; waiting %.f seconds and retrying\n", f.Name, f.Host, f.ReconnectDelay.Seconds())
 			}
 			time.Sleep(f.ReconnectDelay)
@@ -83,7 +83,7 @@ func (feed *Feed) connect() {
 
 		// if block is reached, feed was successfully connected
 		f.isConnected = true
-		if f.Logging {
+		if f.LogStatus {
 			log.Printf("%s [STATUS] Established connection with %s\n", f.Name, f.Host)
 		}
 
@@ -102,7 +102,7 @@ func (feed *Feed) connect() {
 				// with conn.SetDeadline).
 				if err2 := conn.Close(); err2 != nil {
 				}
-				if f.Logging {
+				if f.LogStatus {
 					log.Printf("%s [ERROR] Lost connection with %s; attempting reconnection\n", f.Name, f.Host)
 				}
 				time.Sleep(f.ConnectTimeout)
@@ -136,7 +136,7 @@ func (feed *Feed) handleMessage(data []byte) {
 	alert, err := cap.ParseCAP(data)
 	if err != nil {
 		// TODO: better handling of malformed messages
-		if feed.Logging {
+		if feed.LogStatus {
 			log.Printf("%s [ERROR] MALFORMED MESSAGE\n", feed.Name)
 		}
 		feed.countUnknown++
@@ -154,8 +154,10 @@ func (feed *Feed) handleMessage(data []byte) {
 		}
 		feed.lastMsgTime = time.Now()
 
-		if feed.Logging {
-			log.Printf("%s [STATUS] INCOMING %s\n", feed.Name, feed.lastMsg)
+		if feed.LogStatus {
+			if feed.LogHeartbeat || (!feed.LogHeartbeat && alert.Sender != "NAADS-Heartbeat") {
+				log.Printf("%s [STATUS] INCOMING %s\n", feed.Name, feed.lastMsg)
+			}
 		}
 
 		// broadcast message on channel

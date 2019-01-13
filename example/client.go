@@ -19,25 +19,25 @@ func main() {
 			{
 				Name:            "NAADS-1",
 				Host:            "streaming1.naad-adna.pelmorex.com",
-				SendHeartbeat:   true,
+				SendHeartbeat:   false, // send heartbeats to output channel
 				ConnectTimeout:  1 * time.Second,
 				LivenessTimeout: 65 * time.Second,
 				ReconnectDelay:  21 * time.Second,
-				Logging:         true,
-				LogHeartbeat:    true,
+				LogStatus:       true,  // log feed status (incoming messages + disconnections)
+				LogHeartbeat:    false, // log heartbeats (if LogStatus is enabled)
 			},
 			{
 				Name:            "NAADS-2",
 				Host:            "streaming2.naad-adna.pelmorex.com",
-				SendHeartbeat:   true,
+				SendHeartbeat:   false, // send heartbeats to output channel
 				ConnectTimeout:  1 * time.Second,
 				LivenessTimeout: 65 * time.Second,
 				ReconnectDelay:  21 * time.Second,
-				Logging:         true,
-				LogHeartbeat:    true,
+				LogStatus:       true,  // log feed status (incoming messages + disconnections)
+				LogHeartbeat:    false, // log heartbeats (if LogStatus is enabled)
 			},
 		},
-		Logging: true,
+		LogControl: true, // log controller actions
 	}
 
 	// start HTTP server on port 6060

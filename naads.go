@@ -12,12 +12,12 @@ import (
 	"github.com/thetannerryan/cap"
 )
 
-const version = "v0.0.3" // NAADS client version
+const version = "v0.0.4" // NAADS client version
 
 // Client represents the configuration for the NAAD client.
 type Client struct {
 	Feeds      []*Feed         // Array of NAADS Feeds to listen to (feeds defined first have greater priority when multiple feeds are available)
-	Logging    bool            // Indicator to log control status to stdout
+	LogControl bool            // Indicator to log control status to stdout
 	ch         chan *cap.Alert // Alert output channel
 	activeFeed int             // Index of active feed
 	startTime  time.Time       // Start time of client
@@ -70,13 +70,15 @@ func (c *Client) monitor() {
 			if c.activeFeed == -1 {
 				// currently not locked to feed
 				feedIndex := c.findAvailableFeed()
-				if feedIndex == -1 {
+				if feedIndex == -1 && c.LogControl {
 					log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
 				} else {
 					// lock the new feed
 					c.activeFeed = feedIndex
 					currentFeed := c.Feeds[c.activeFeed]
-					log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
+					if c.LogControl {
+						log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
+					}
 				}
 			} else {
 				// currently locked to feed, check health and switch if
@@ -86,14 +88,15 @@ func (c *Client) monitor() {
 					// current feed is down, find another feed
 					c.activeFeed = -1
 					feedIndex := c.findAvailableFeed()
-					if feedIndex == -1 {
-						// unlock the active feed
+					if feedIndex == -1 && c.LogControl {
 						log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
 					} else {
 						// lock the new feed
 						c.activeFeed = feedIndex
 						currentFeed := c.Feeds[c.activeFeed]
-						log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
+						if c.LogControl {
+							log.Printf("CONTROL [STATUS] Successfully locked feed to %s\n", currentFeed.Name)
+						}
 					}
 				}
 			}

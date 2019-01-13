@@ -127,7 +127,7 @@ func (c *Client) generateStatus() *status {
 		config.ConnectTimeout = strconv.Itoa(int(f.ConnectTimeout.Seconds())) + "s"
 		config.LivenessTimeout = strconv.Itoa(int(f.LivenessTimeout.Seconds())) + "s"
 		config.ReconnectDelay = strconv.Itoa(int(f.ReconnectDelay.Seconds())) + "s"
-		if f.Logging {
+		if f.LogStatus {
 			config.Logging = "YES"
 		} else {
 			config.Logging = "NO"
