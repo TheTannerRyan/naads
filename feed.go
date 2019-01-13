@@ -6,6 +6,7 @@ package naads
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -138,6 +139,8 @@ func (feed *Feed) handleMessage(data []byte) {
 		// TODO: better handling of malformed messages
 		if feed.LogStatus {
 			log.Printf("%s [ERROR] MALFORMED MESSAGE\n", feed.Name)
+			fmt.Printf("%s\n", err)
+			fmt.Printf("%s\n\n", string(data))
 		}
 		feed.countUnknown++
 	} else {
