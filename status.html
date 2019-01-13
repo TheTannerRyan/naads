@@ -59,7 +59,7 @@
             <th>Connect Timeout</th>
             <th>Liveness Timeout</th>
             <th>Reconnect Delay</th>
-            <th>Logging</th>
+            <th>Log Status</th>
             <th>Log Heartbeat</th>
         </tr>
         {{range .FeedConfig}}
@@ -70,7 +70,7 @@
             <td>{{.ConnectTimeout}}</td>
             <td>{{.LivenessTimeout}}</td>
             <td>{{.ReconnectDelay}}</td>
-            <td>{{.Logging}}</td>
+            <td>{{.LogStatus}}</td>
             <td>{{.LogHeartbeat}}</td>
         </tr>
         {{end}}

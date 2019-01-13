@@ -68,7 +68,7 @@ type feedconfig struct {
 	ConnectTimeout  string
 	LivenessTimeout string
 	ReconnectDelay  string
-	Logging         string
+	LogStatus       string
 	LogHeartbeat    string
 }
 
@@ -128,9 +128,9 @@ func (c *Client) generateStatus() *status {
 		config.LivenessTimeout = strconv.Itoa(int(f.LivenessTimeout.Seconds())) + "s"
 		config.ReconnectDelay = strconv.Itoa(int(f.ReconnectDelay.Seconds())) + "s"
 		if f.LogStatus {
-			config.Logging = "YES"
+			config.LogStatus = "YES"
 		} else {
-			config.Logging = "NO"
+			config.LogStatus = "NO"
 		}
 		if f.LogHeartbeat {
 			config.LogHeartbeat = "YES"
