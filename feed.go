@@ -35,8 +35,9 @@ type Feed struct {
 	lastMsgTime     time.Time       // Last time a message (alert or heartbeat) was received (not currently used)
 	lastMsg         string          // Type and ID of last message that was received
 	countDisconnect int             // Count of feed disconnections
-	countHeartbeat  int             // Count of heartbeat messages
 	countAlert      int             // Count of alert messages
+	countHeartbeat  int             // Count of heartbeat messages
+	countTest       int             // Count of test messages
 	countUnknown    int             // Count of unknown messages
 }
 
@@ -109,62 +110,57 @@ func (feed *Feed) connect() {
 				return
 			}
 
-			// normal operation: if start signature encountered, clear data
-			// buffer for new data
+			// if start signature encountered, clear data buffer for new data
 			startIndex := bytes.Index(temp, startSignature)
 			if startIndex != -1 {
 				// clear data buffer
 				data = data[:0]
-
-				if startIndex == 38 {
-					// new heartbeat message
-					f.lastMsg = "HEARTBEAT "
-					f.countHeartbeat++
-					if f.Logging && f.LogHeartbeat {
-						log.Printf("%s [STATUS] INCOMING HEARTBEAT\n", f.Name)
-					}
-				} else if startIndex == 55 {
-					// new alert message
-					f.lastMsg = "ALERT "
-					f.countAlert++
-					if f.Logging {
-						log.Printf("%s [STATUS] INCOMING ALERT\n", f.Name)
-					}
-				} else {
-					// new unknown message
-					f.lastMsg = "UNKNOWN "
-					f.countUnknown++
-					if f.Logging {
-						log.Printf("%s [STATUS] INCOMING UNKNOWN\n", f.Name)
-					}
-				}
 			}
 
-			// normal operation: append last chunk of temp buffer to data buffer
+			// append last chunk of temp buffer to data buffer
 			lastChunk := temp[:n]
 			data = append(data, lastChunk...)
 
-			// normal operation: if end signature encountered, the data is ready
-			// to be parsed
+			// if end signature encountered, the data is ready to be parsed
 			endIndex := bytes.Index(lastChunk, endSignature)
 			if endIndex != -1 {
-				// parse the message using CAP package
-				alert, err := cap.ParseCAP(data)
-				if err != nil {
-					//> TODO: incorporate manually fetching of malformed +
-					// missing messages
-					if f.Logging {
-						log.Printf("%s [ERROR] MALFORMED MESSAGE\n", f.Name)
-					}
-				} else {
-					// update message time; broadcast message on channel
-					f.lastMsg += alert.Identifier
-					f.lastMsgTime = time.Now()
-					if f.SendHeartbeat || (!f.SendHeartbeat && alert.Sender != "NAADS-Heartbeat") {
-						f.ch <- alert
-					}
-				}
+				f.handleMessage(data)
 			}
 		}
 	}(feed)
+}
+
+// handleMessage will convert the XML byte data into an Alert struct using the
+// cap package. It will pass this struct through the Feed output channel.
+func (feed *Feed) handleMessage(data []byte) {
+	alert, err := cap.ParseCAP(data)
+	if err != nil {
+		// TODO: better handling of malformed messages
+		if feed.Logging {
+			log.Printf("%s [ERROR] MALFORMED MESSAGE\n", feed.Name)
+		}
+		feed.countUnknown++
+	} else {
+		// identify message, updating the corresponding count
+		if alert.Status == cap.StatusSystem && alert.Sender == "NAADS-Heartbeat" {
+			feed.lastMsg = "HEARTBEAT " + alert.Identifier
+			feed.countHeartbeat++
+		} else if alert.Status == cap.StatusTest {
+			feed.lastMsg = "TEST " + alert.Identifier
+			feed.countTest++
+		} else {
+			feed.lastMsg = "ALERT " + alert.Identifier
+			feed.countAlert++
+		}
+		feed.lastMsgTime = time.Now()
+
+		if feed.Logging {
+			log.Printf("%s [STATUS] INCOMING %s\n", feed.Name, feed.lastMsg)
+		}
+
+		// broadcast message on channel
+		if feed.SendHeartbeat || (!feed.SendHeartbeat && alert.Sender != "NAADS-Heartbeat") {
+			feed.ch <- alert
+		}
+	}
 }

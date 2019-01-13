@@ -12,7 +12,7 @@ import (
 	"github.com/thetannerryan/cap"
 )
 
-const version = "v0.0.2" // NAADS client version
+const version = "v0.0.3" // NAADS client version
 
 // Client represents the configuration for the NAAD client.
 type Client struct {
