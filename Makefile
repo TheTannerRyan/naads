@@ -5,7 +5,9 @@ build:
 docker:
 	dep ensure
 	docker build -t naads .
-	docker run -d --restart=unless-stopped -p 6060:6060 --name naads naads
+	# docker save -o naads.tar naads # (save on one)
+	# docker load -i naads.tar # (deploy on another)
+	# docker run -d --restart=unless-stopped -p 80:6060 --name naads naads
 
 clean:
 	rm -rf vendor ./client
