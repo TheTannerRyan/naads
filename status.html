@@ -34,7 +34,8 @@
             <th>Disconnections</th>
             <th>Alerts</th>
             <th>Heartbeats</th>
-            <th>Unknown</th>
+            <th>Tests</th>
+            <th>Unknowns</th>
         </tr>
         {{range .FeedStatus}}
         <tr>
@@ -44,6 +45,7 @@
             <td>{{.CountDisconnect}}</td>
             <td>{{.CountAlert}}</td>
             <td>{{.CountHeartbeat}}</td>
+            <td>{{.CountTest}}</td>
             <td>{{.CountUnknown}}</td>
         </tr>
         {{end}}

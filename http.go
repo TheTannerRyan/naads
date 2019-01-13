@@ -54,8 +54,9 @@ type feedstatus struct {
 	LastMsg         string
 	LastMsgTime     string
 	CountDisconnect string
-	CountHeartbeat  string
 	CountAlert      string
+	CountHeartbeat  string
+	CountTest       string
 	CountUnknown    string
 }
 
@@ -108,8 +109,9 @@ func (c *Client) generateStatus() *status {
 			status.LastMsgTime = "(" + strconv.Itoa(diff) + " seconds ago)"
 		}
 		status.CountDisconnect = strconv.Itoa(f.countDisconnect)
-		status.CountHeartbeat = strconv.Itoa(f.countHeartbeat)
 		status.CountAlert = strconv.Itoa(f.countAlert)
+		status.CountHeartbeat = strconv.Itoa(f.countHeartbeat)
+		status.CountTest = strconv.Itoa(f.countTest)
 		status.CountUnknown = strconv.Itoa(f.countUnknown)
 		feedStatus = append(feedStatus, status)
 

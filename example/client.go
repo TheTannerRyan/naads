@@ -45,6 +45,6 @@ func main() {
 
 	// receive the alerts (highly available)
 	for alert := range client.Start() {
-		fmt.Println(alert.Identifier)
+		fmt.Println("EXAMPLE CLIENT (sender): " + alert.Sender)
 	}
 }
