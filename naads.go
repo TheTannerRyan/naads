@@ -71,7 +71,7 @@ func (c *Client) monitor() {
 				// currently not locked to feed
 				feedIndex := c.findAvailableFeed()
 				if feedIndex == -1 && c.LogControl {
-					log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
+					log.Printf("CONTROL [ERROR]  ALL FEEDS ARE DEAD !!\n")
 				} else {
 					// lock the new feed
 					c.activeFeed = feedIndex
@@ -89,7 +89,7 @@ func (c *Client) monitor() {
 					c.activeFeed = -1
 					feedIndex := c.findAvailableFeed()
 					if feedIndex == -1 && c.LogControl {
-						log.Printf("CONTROL [ERROR] ALL FEEDS ARE DEAD !!\n")
+						log.Printf("CONTROL [ERROR]  ALL FEEDS ARE DEAD !!\n")
 					} else {
 						// lock the new feed
 						c.activeFeed = feedIndex

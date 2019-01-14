@@ -70,7 +70,7 @@ func (feed *Feed) connect() {
 			// status and wait ReconnectDelay before re-attempting connection.
 			f.isConnected = false
 			if f.LogStatus {
-				log.Printf("%s [ERROR] Cannot establish connection with %s; waiting %.f seconds and retrying\n", f.Name, f.Host, f.ReconnectDelay.Seconds())
+				log.Printf("%s [ERROR]  Cannot establish connection with %s; waiting %.f seconds and retrying\n", f.Name, f.Host, f.ReconnectDelay.Seconds())
 			}
 			time.Sleep(f.ReconnectDelay)
 			f.connect()
@@ -104,7 +104,7 @@ func (feed *Feed) connect() {
 				if err2 := conn.Close(); err2 != nil {
 				}
 				if f.LogStatus {
-					log.Printf("%s [ERROR] Lost connection with %s; attempting reconnection\n", f.Name, f.Host)
+					log.Printf("%s [ERROR]  Lost connection with %s; attempting reconnection\n", f.Name, f.Host)
 				}
 				time.Sleep(f.ConnectTimeout)
 				f.connect()
@@ -138,7 +138,7 @@ func (feed *Feed) handleMessage(data []byte) {
 	if err != nil {
 		// TODO: better handling of malformed messages
 		if feed.LogStatus {
-			log.Printf("%s [ERROR] MALFORMED MESSAGE\n", feed.Name)
+			log.Printf("%s [ERROR]  MALFORMED MESSAGE\n", feed.Name)
 			fmt.Printf("%s\n", err)
 			fmt.Printf("%s\n\n", string(data))
 		}

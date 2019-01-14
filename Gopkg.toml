@@ -1,6 +1,6 @@
 [[constraint]]
-  branch = "master"
   name = "github.com/thetannerryan/cap"
+  version = "1.0.0"
 
 [prune]
   go-tests = true
