@@ -9,7 +9,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	_ "net/http/pprof" // resource monitoring
 	"strconv"
 	"time"
 )
@@ -23,8 +22,16 @@ func (c *Client) HTTP(port int) {
 			log.Printf("CONTROLLER [ERROR]  Unable to read status.html")
 		}
 
+		mux := http.NewServeMux()
+		server := &http.Server{
+			Addr:         ":" + strconv.Itoa(port),
+			Handler:      mux,
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+
 		// register HTTP route
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			// generate data for page
 			data := c.generateStatus()
 			if err := page.ExecuteTemplate(w, "status", data); err != nil {
@@ -33,7 +40,7 @@ func (c *Client) HTTP(port int) {
 		})
 
 		// start endpoint
-		log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(port), nil))
+		log.Fatalln(server.ListenAndServe())
 	}()
 }
 
