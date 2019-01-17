@@ -21,7 +21,7 @@ func main() {
 				Host:            "streaming1.naad-adna.pelmorex.com",
 				SendHeartbeat:   false, // send heartbeats to output channel
 				ConnectTimeout:  1 * time.Second,
-				LivenessTimeout: 65 * time.Second,
+				LivenessTimeout: 75 * time.Second,
 				ReconnectDelay:  21 * time.Second,
 				LogStatus:       true, // log feed status (incoming messages + disconnections)
 				LogHeartbeat:    true, // log heartbeats (if LogStatus is enabled)
@@ -31,7 +31,7 @@ func main() {
 				Host:            "streaming2.naad-adna.pelmorex.com",
 				SendHeartbeat:   false, // send heartbeats to output channel
 				ConnectTimeout:  1 * time.Second,
-				LivenessTimeout: 65 * time.Second,
+				LivenessTimeout: 75 * time.Second,
 				ReconnectDelay:  21 * time.Second,
 				LogStatus:       true, // log feed status (incoming messages + disconnections)
 				LogHeartbeat:    true, // log heartbeats (if LogStatus is enabled)
