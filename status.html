@@ -31,24 +31,20 @@
             <th>Status</th>
             <th>Name</th>
             <th>Last Message</th>
-            <th>Disconnections</th>
             <th>Alerts</th>
             <th>Heartbeats</th>
             <th>Tests</th>
             <th>Unknowns</th>
         </tr>
-        {{range .FeedStatus}}
-        <tr>
+        {{range .FeedStatus}}<tr>
             <td class="{{.StatusStyle}}">{{.Status}}</td>
             <td>{{.Name}}</td>
             <td>{{.LastMsg}} {{.LastMsgTime}}</td>
-            <td>{{.CountDisconnect}}</td>
             <td>{{.CountAlert}}</td>
             <td>{{.CountHeartbeat}}</td>
             <td>{{.CountTest}}</td>
             <td>{{.CountUnknown}}</td>
-        </tr>
-        {{end}}
+        </tr>{{end}}
     </table>
     <h2>Feed Configuration</h2>
     <table class="full-width">
@@ -62,8 +58,7 @@
             <th>Log Status</th>
             <th>Log Heartbeat</th>
         </tr>
-        {{range .FeedConfig}}
-        <tr>
+        {{range .FeedConfig}}<tr>
             <td>{{.Name}}</td>
             <td>{{.Host}}</td>
             <td>{{.SendHeartbeat}}</td>
@@ -72,8 +67,7 @@
             <td>{{.ReconnectDelay}}</td>
             <td>{{.LogStatus}}</td>
             <td>{{.LogHeartbeat}}</td>
-        </tr>
-        {{end}}
+        </tr>{{end}}
     </table>
     <p><strong>Copyright (c) 2019 Tanner Ryan. All rights reserved. Use of this
             <a href="https://github.com/TheTannerRyan/naads"
