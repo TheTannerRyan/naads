@@ -1,11 +1,11 @@
 # naads - Highly available Go client for Pelmorex NAADS
 [![Build
-Status](https://travis-ci.org/TheTannerRyan/naads.svg?branch=master)](https://travis-ci.org/TheTannerRyan/naads)
+Status](https://img.shields.io/travis/TheTannerRyan/naads.svg?style=flat-square)](https://travis-ci.org/TheTannerRyan/naads)
 [![Go Report
-Card](https://goreportcard.com/badge/github.com/thetannerryan/naads)](https://goreportcard.com/report/github.com/thetannerryan/naads)
-[![GoDoc](https://godoc.org/github.com/TheTannerRyan/naads?status.svg)](https://godoc.org/github.com/TheTannerRyan/naads)
+Card](https://goreportcard.com/badge/github.com/thetannerryan/naads?style=flat-square)](https://goreportcard.com/report/github.com/thetannerryan/naads)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-5673AF.svg?style=flat-square)](https://godoc.org/github.com/TheTannerRyan/naads)
 [![GitHub
-license](https://img.shields.io/github/license/thetannerryan/naads.svg)](https://github.com/TheTannerRyan/naads/blob/master/LICENSE)
+license](https://img.shields.io/github/license/TheTannerRyan/naads.svg?style=flat-square)](https://github.com/TheTannerRyan/naads/blob/master/LICENSE)
 
 Package naads is a highly available client written in Go for Pelmorex's National
 Alert Aggregation & Dissemination System (NAADS).
